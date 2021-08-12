@@ -4,6 +4,9 @@ import { useDrag, useDrop, DropTargetMonitor } from 'react-dnd';
 import { XYCoord } from 'dnd-core';
 
 const style = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '16px',
   border: '1px dashed gray',
   padding: '0.5rem 1rem',
   marginBottom: '.5rem',
@@ -29,9 +32,9 @@ interface DragItem {
 }
 
 const DnDItem: FC<DnDItemProps> = ({ id, text, index, moveCard }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const previewAndDropRef = useRef<HTMLDivElement>(null);
 
-  const [{ handlerId }, drop] = useDrop({
+  const [{ handlerId }, dropRef] = useDrop({
     accept: ItemTypes.ITEM,
 
     collect(monitor) {
@@ -41,7 +44,7 @@ const DnDItem: FC<DnDItemProps> = ({ id, text, index, moveCard }) => {
     },
 
     hover(item: DragItem, monitor: DropTargetMonitor) {
-      if (!ref.current) {
+      if (!previewAndDropRef.current) {
         return;
       }
 
@@ -55,7 +58,8 @@ const DnDItem: FC<DnDItemProps> = ({ id, text, index, moveCard }) => {
       }
 
       // Determine rectangle on screen
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+      const hoverBoundingRect =
+        previewAndDropRef.current?.getBoundingClientRect();
 
       // Get vertical middle
       const hoverMiddleY =
@@ -92,7 +96,7 @@ const DnDItem: FC<DnDItemProps> = ({ id, text, index, moveCard }) => {
     },
   });
 
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, dragRef, previewRef] = useDrag({
     type: ItemTypes.ITEM,
 
     item: () => {
@@ -106,10 +110,22 @@ const DnDItem: FC<DnDItemProps> = ({ id, text, index, moveCard }) => {
 
   const opacity = isDragging ? 0 : 1;
 
-  drag(drop(ref));
+  previewRef(dropRef(previewAndDropRef));
 
   return (
-    <div ref={ref} style={{ ...style, opacity }} data-handler-id={handlerId}>
+    <div
+      ref={previewAndDropRef}
+      style={{ ...style, opacity }}
+      data-handler-id={handlerId}
+    >
+      <div
+        ref={dragRef}
+        style={{
+          backgroundImage: 'url("/drag.svg")',
+          height: '24px',
+          width: '32px',
+        }}
+      />
       {text}
     </div>
   );
